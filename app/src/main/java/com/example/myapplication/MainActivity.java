@@ -16,7 +16,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Objects;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
             if(name.isEmpty() || age.isEmpty() || email.isEmpty() || password.isEmpty())
                 Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
-            else createAccount(new User(UUID.randomUUID().toString(), name, Integer.parseInt(age), email, password));
+            else createAccount(new User(name, Integer.parseInt(age), email), password);
 
         });
 
@@ -56,21 +55,29 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveData(User user) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
-        databaseReference.child(user.getId()).setValue(user).addOnSuccessListener(u -> {
+        databaseReference.child(user.getId())
+                .setValue(user)
+                .addOnSuccessListener(u -> {
             Toast.makeText(this, "Data saved successfully", Toast.LENGTH_SHORT).show();
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "Failed to save data: \n" + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 
-    private void createAccount(User user) {
+    private void createAccount(User user, String password) {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         firebaseAuth
-                .createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
+                .createUserWithEmailAndPassword(user.getEmail(), password)
                 .addOnCompleteListener(task -> {
-                    if(task.isSuccessful())
+                    if(task.isSuccessful()) {
                         Toast.makeText(this, "Account created successfully", Toast.LENGTH_SHORT).show();
+                        String userId = Objects.requireNonNull(task.getResult().getUser()).getUid();
+                        user.setId(userId);
+                        saveData(user);
+                    }
                     else Toast.makeText(this, "Account not created", Toast.LENGTH_SHORT).show();
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }
