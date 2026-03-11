@@ -11,6 +11,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.myapplication.databinding.ActivityMainBinding;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
             if(name.isEmpty() || age.isEmpty() || email.isEmpty() || password.isEmpty())
                 Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
-            else saveData(new User(UUID.randomUUID().toString(), name, Integer.parseInt(age), email, password));
+            else createAccount(new User(UUID.randomUUID().toString(), name, Integer.parseInt(age), email, password));
 
         });
 
@@ -58,7 +59,18 @@ public class MainActivity extends AppCompatActivity {
         databaseReference.child(user.getId()).setValue(user).addOnSuccessListener(u -> {
             Toast.makeText(this, "Data saved successfully", Toast.LENGTH_SHORT).show();
         }).addOnFailureListener(e -> {
-            Toast.makeText(this, "Failed to save data", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to save data: \n" + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void createAccount(User user) {
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firebaseAuth
+                .createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful())
+                        Toast.makeText(this, "Account created successfully", Toast.LENGTH_SHORT).show();
+                    else Toast.makeText(this, "Account not created", Toast.LENGTH_SHORT).show();
+                });
     }
 }
