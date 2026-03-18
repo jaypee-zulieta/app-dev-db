@@ -39,7 +39,12 @@ public class MainActivity extends AppCompatActivity {
 
             if(name.isEmpty() || age.isEmpty() || email.isEmpty() || password.isEmpty())
                 Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
-            else createAccount(new User(name, Integer.parseInt(age), email), password);
+            else {
+                createAccount(new User(name, Integer.parseInt(age), email), password);
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+            }
 
         });
 
